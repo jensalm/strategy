@@ -1,13 +1,12 @@
 package com.captechventures.strategies.switcher;
 
-import com.captechventures.model.Profile;
 import com.captechventures.strategy.Strategy;
 import com.google.common.collect.Maps;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-@Strategy(type = UserSwitcherStrategy.class, profiles = Profile.LIMITED)
+@Strategy(type = UserSwitcherStrategy.class, selector = "#{#profile == T(com.captechventures.model.Profile).LIMITED}")
 public class LimitedUserSwitcherStrategy implements UserSwitcherStrategy {
 
     @Override

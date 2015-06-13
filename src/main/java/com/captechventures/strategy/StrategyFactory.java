@@ -1,6 +1,5 @@
 package com.captechventures.strategy;
 
-import com.captechventures.model.Profile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -8,28 +7,31 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
+
 import org.slf4j.*;
 
 import java.util.*;
 
 /**
- * Factory to look up different strategies. Supports profile's based on the user's context.
+ * ‘
+ * Factory to look up different strategies at runtime.
+ *
  * @see Strategy
  */
 @Repository
 public class StrategyFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(StrategyFactory.class);
-    
+
     @Autowired
     private ApplicationContext applicationContext;
 
-    private Map<Class, List<Object>> annotatedTypes = new HashMap<>();
-    private Map<Class, Strategy> strategyCache = new HashMap<>();
+    private Map<Class, List<AnnotatedBean>> strategies = new HashMap<>();
 
     /**
      * Finds all beans annotated with Strategy. Does a quick sanity
-     * check so only one strategy exists for each profile.
+     * check so only one strategy exists for each selector value.
+     *
      * @see Strategy
      */
     @PostConstruct
@@ -37,116 +39,90 @@ public class StrategyFactory {
 
         Map<String, Object> annotatedBeanClasses = applicationContext.getBeansWithAnnotation(Strategy.class);
 
-        sanityCheck(annotatedBeanClasses.values());
-
         for (Object bean : annotatedBeanClasses.values()) {
-            Strategy strategyAnnotation = strategyCache.get(bean.getClass());
-            getBeansWithSameType(strategyAnnotation).add(bean);
-        }
-
-    }
-
-    /**
-     * Checks to make sure there is only one strategy of each type(Interface) annotated for each profile.
-     * Will throw an exception on startup if multiple strategies are mapped to the same profile.
-     * @param annotatedBeanClasses a list of beans from the spring application context
-     */
-    private void sanityCheck(Collection<Object> annotatedBeanClasses) {
-
-        Set<String> usedStrategies = new HashSet<>();
-
-        for (Object bean : annotatedBeanClasses) {
-
             Strategy strategyAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), Strategy.class);
-            strategyCache.put(bean.getClass(), strategyAnnotation);
-
-            if (isDefault(strategyAnnotation)) {
-                ifNotExistAdd(strategyAnnotation.type(), "default", usedStrategies);
+            if (!strategies.containsKey(strategyAnnotation.type())) {
+                strategies.put(strategyAnnotation.type(), new ArrayList<>());
             }
+            ifNotExistAdd(strategies.get(strategyAnnotation.type()), strategyAnnotation, bean);
+        }
 
-            for (Profile profile : strategyAnnotation.profiles()) {
-                ifNotExistAdd(strategyAnnotation.type(), profile, usedStrategies);
+        sanityCheck();
+    }
+
+    private void sanityCheck() {
+
+        Map<String, AnnotatedBean> selectors = new HashMap<>();
+        for (List<AnnotatedBean> annotatedBeans : strategies.values()) {
+            for (AnnotatedBean annotatedBean : annotatedBeans) {
+                String selector = annotatedBean.getStrategy().selector();
+                if (selector != null && !selector.equals("")) {
+                    AnnotatedBean otherBean = selectors.get(selector);
+                    if (otherBean != null && otherBean.getStrategy().type().equals(annotatedBean.getStrategy().type())) {
+                        throw new RuntimeException("Selectors must be unique for each strategy, duplicate selector '" + selector + "'");
+                    }
+                    selectors.put(selector, annotatedBean);
+                }
             }
+        }
 
+        for (Class strategyClass : strategies.keySet()) {
+            if (!hasDefaultStrategy(strategyClass)) {
+                throw new RuntimeException("Each strategy must have a default fallback strategy, strategy missing default: " + strategyClass.getName());
+            }
         }
     }
 
-    private void ifNotExistAdd(Class type, Profile profile, Set<String> usedStrategies) {
-        ifNotExistAdd(type, profile.name(), usedStrategies);
-    }
-
-    private void ifNotExistAdd(Class type, String profile, Set<String> usedStrategies) {
-        if (usedStrategies.contains(createKey(type, profile))) {
-            throw new RuntimeException("There can only be a single strategy for each type, found multiple for type '"+type+"' and profile '"+profile+"'");
+    private boolean hasDefaultStrategy(Class strategyClass) {
+        List<AnnotatedBean> annotatedBeans = strategies.get(strategyClass);
+        for (AnnotatedBean annotatedBean : annotatedBeans) {
+            if (annotatedBean.isDefaultStrategy()) {
+                return true;
+            }
         }
-        usedStrategies.add(createKey(type, profile));
+        return false;
     }
 
-    private String createKey(Class type, String profile) {
-        return (type+"_"+profile).toLowerCase();
-    }
-
-    private List<Object> getBeansWithSameType(Strategy strategyAnnotation) {
-        List<Object> beansWithSameType = annotatedTypes.get(strategyAnnotation.type());
-        if (beansWithSameType != null) {
-            return beansWithSameType;
-        } else {
-            List<Object> newBeansList = new ArrayList<>();
-            annotatedTypes.put(strategyAnnotation.type(), newBeansList);
-            return newBeansList;
+    private AnnotatedBean ifNotExistAdd(List<AnnotatedBean> beans, Strategy strategyAnnotation, Object bean) {
+        for (AnnotatedBean ab : beans) {
+            if (ab.getBean().equals(bean)) {
+                return ab;
+            }
         }
+        AnnotatedBean annotatedBean = new AnnotatedBean<>(bean, strategyAnnotation, isDefault(strategyAnnotation));
+        strategies.get(strategyAnnotation.type()).add(annotatedBean);
+        return annotatedBean;
     }
 
     private boolean isDefault(Strategy strategyAnnotation) {
-        return (strategyAnnotation.profiles().length == 0);
+        return (strategyAnnotation.selector() == null || strategyAnnotation.selector().equals(""));
     }
 
-    public <T> T getStrategy(Class<T> strategyType, Profile currentProfile) {
+    public <T> T getStrategy(Class<T> strategyType, Map<String, Object> context) {
+        return getStrategy(strategyType, new DefaultSelector<>(context));
+    }
 
-        List<Object> strategyBeans = annotatedTypes.get(strategyType);
-        Assert.notEmpty(strategyBeans, "No strategies found of type '"+ strategyType.getName()+"', are the strategies marked with @Strategy?");
+    public <T> T getStrategy(Class<T> strategyType, Selector<T> selector) {
 
-        Object profileStrategy = findStrategyMatchingProfile(strategyBeans, currentProfile);
-        if (profileStrategy == null) {
-            throw new RuntimeException("No strategy found for type '"+ strategyType +"'");
-        }
+        List<AnnotatedBean> strategyBeans = strategies.get(strategyType);
+        Assert.notEmpty(strategyBeans, String.format("No strategies found of type '%s', are the strategies marked with @Strategy?", strategyType.getName()));
+
+        T chosenStrategy = selector.select(strategyBeans);
         //noinspection unchecked
-        return (T)profileStrategy;
-    }
-
-    private Object findStrategyMatchingProfile(List<Object> strategyBeans, Profile currentProfile) {
-
-        Object defaultStrategy = null;
-        for (Object bean : strategyBeans) {
-            Strategy strategyAnnotation = strategyCache.get(bean.getClass());
-            if(currentProfile != null) {
-                //Only iterate the profiles if a profile has been selected
-                for (Profile profile : strategyAnnotation.profiles()) {
-                    if (profile == currentProfile) {
-                        LOG.debug("Found strategy of type '"+strategyAnnotation.type()+"' matching profile '"+currentProfile+"'");
-                        return bean;
-                    }
-                }
-            }
-
-            if (isDefault(strategyAnnotation)) {
-                defaultStrategy = bean;
-                if(currentProfile == null) {
-                    //In this case we can return the default and stop iterating, since we are only
-                    //interested in the default strategy when no profile is selected. May save us a clock cycle or two.
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("No profile selected, returning default strategy");
-                    }
-                    return defaultStrategy;
-                }
-            }
+        if (chosenStrategy != null) {
+            return chosenStrategy;
         }
         if (LOG.isDebugEnabled()) {
-            if (defaultStrategy != null) {
-                LOG.debug("No profile specific strategy found, returning default strategy");
+            LOG.debug("No strategy selected, using default strategy");
+        }
+        for (AnnotatedBean annotatedBean : strategyBeans) {
+            if (isDefault(annotatedBean.getStrategy())) {
+                //noinspection unchecked
+                return (T) annotatedBean.getBean();
             }
         }
-        return defaultStrategy;
+
+        throw new RuntimeException(String.format("No strategy found for type '%s'", strategyType));
     }
 
 }

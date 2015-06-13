@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationContext;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,7 +53,7 @@ public class StrategyFactoryTest {
 
         factory.init();
 
-        TestStrategy strategy = factory.getStrategy(TestStrategy.class, Profile.PREMIUM);
+        TestStrategy strategy = factory.getStrategy(TestStrategy.class, Collections.singletonMap("profile", Profile.PREMIUM));
         assertEquals("Strategy returned was for the wrong profile", strategy.getClass(), PremiumTestStrategy.class);
     }
 
@@ -68,7 +69,7 @@ public class StrategyFactoryTest {
 
         factory.init();
 
-        SuperSpecialStrategy strategy = factory.getStrategy(SuperSpecialStrategy.class, Profile.PREMIUM);
+        SuperSpecialStrategy strategy = factory.getStrategy(SuperSpecialStrategy.class, Collections.singletonMap("profile", Profile.PREMIUM));
         assertEquals("Strategy returned was for the wrong profile", strategy.getClass(), LimitedPremiumSpecialStrategy.class);
     }
 
@@ -84,7 +85,7 @@ public class StrategyFactoryTest {
 
         factory.init();
 
-        TestStrategy strategy = factory.getStrategy(TestStrategy.class, null);
+        TestStrategy strategy = factory.getStrategy(TestStrategy.class, Collections.emptyMap());
         assertTrue("Strategy returned was for the wrong profile", strategy instanceof DefaultTestStrategy);
     }
 
@@ -99,42 +100,44 @@ public class StrategyFactoryTest {
 
         factory.init();
 
-        factory.getStrategy(SuperSpecialStrategy.class, Profile.PREMIUM);
+        factory.getStrategy(SuperSpecialStrategy.class, Collections.singletonMap("profile", Profile.PREMIUM));
     }
 
-    private static interface TestStrategy {}
+    private interface TestStrategy {}
 
     @Strategy(type=TestStrategy.class)
     private static class DefaultTestStrategy implements TestStrategy {
     }
 
-    @Strategy(type=TestStrategy.class, profiles = Profile.FREE)
+    @Strategy(type=TestStrategy.class, selector = "#{#profile == T(com.captechventures.model.Profile).FREE}")
     private static class FreeTestStrategy implements TestStrategy {
     }
 
-    @Strategy(type=TestStrategy.class, profiles = Profile.LIMITED)
+    @Strategy(type=TestStrategy.class, selector = "#{#profile == T(com.captechventures.model.Profile).LIMITED}")
     private static class LimitedTestStrategy implements TestStrategy {
     }
 
-    @Strategy(type=TestStrategy.class, profiles = Profile.PREMIUM)
+    @Strategy(type=TestStrategy.class, selector = "#{#profile == T(com.captechventures.model.Profile).PREMIUM}")
     private static class PremiumTestStrategy implements TestStrategy {
     }
 
-    @Strategy(type=TestStrategy.class, profiles = {Profile.FREE, Profile.LIMITED})
+    @Strategy(type=TestStrategy.class,
+            selector = "#{#profile == T(com.captechventures.model.Profile).FREE or #profile == T(com.captechventures.model.Profile).PREMIUM}")
     private static class FreeLimitedTestStrategy implements TestStrategy {
     }
 
-    private static interface SuperSpecialStrategy {}
+    private interface SuperSpecialStrategy {}
 
     @Strategy(type=SuperSpecialStrategy.class)
     private static class DefaultSuperSpecialStrategy implements SuperSpecialStrategy {
     }
 
-    @Strategy(type=SuperSpecialStrategy.class, profiles = Profile.FREE)
+    @Strategy(type=SuperSpecialStrategy.class, selector = "#{#profile == T(com.captechventures.model.Profile).FREE}")
     private static class FreeSuperSpecialStrategy implements SuperSpecialStrategy {
     }
 
-    @Strategy(type=SuperSpecialStrategy.class, profiles = {Profile.LIMITED, Profile.PREMIUM})
+    @Strategy(type=SuperSpecialStrategy.class,
+            selector = "#{#profile == T(com.captechventures.model.Profile).LIMITED or #profile == T(com.captechventures.model.Profile).PREMIUM}")
     private static class LimitedPremiumSpecialStrategy implements SuperSpecialStrategy {
     }
 

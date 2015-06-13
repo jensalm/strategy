@@ -1,6 +1,5 @@
 package com.captechventures.strategy;
 
-import com.captechventures.model.Profile;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.*;
@@ -16,7 +15,7 @@ import java.lang.annotation.*;
  * group.
  * @see StrategyFactory
  * @see Strategy#type()
- * @see Strategy#profiles()
+ * @see Strategy#selector()
  */
 @Documented
 @Target({ ElementType.TYPE })
@@ -26,6 +25,7 @@ public @interface Strategy {
 
     Class type();
 
-    Profile[] profiles() default {};
+    String selector() default "";
 
+    boolean fallback() default false;
 }

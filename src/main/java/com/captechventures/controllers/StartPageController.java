@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.Map;
 
 @Controller
@@ -26,7 +27,7 @@ public class StartPageController {
     @Autowired
     private UserService userService;
 
-    @RequestMapping( value = "/" )
+    @RequestMapping( "/" )
     public ModelAndView showStartPage(HttpServletRequest request) {
 
         ModelAndView modelAndView = new ModelAndView("start");
@@ -34,16 +35,17 @@ public class StartPageController {
         User user = getCurrentUser(request);
         modelAndView.addObject("user", user);
         Profile profile = user != null ? user.getProfile() : null;
+        Map<String, Object> context = Collections.singletonMap("profile", profile);
 
-        strategyFactory.getStrategy(NavigationStrategy.class, profile).createNavigation(modelAndView);
+        strategyFactory.getStrategy(NavigationStrategy.class, context).createNavigation(modelAndView);
 
-        Map<String, String> links = strategyFactory.getStrategy(UserSwitcherStrategy.class, profile).getLinks(request);
+        Map<String, String> links = strategyFactory.getStrategy(UserSwitcherStrategy.class, context).getLinks(request);
         modelAndView.addObject("links", links);
 
         return modelAndView;
     }
 
-    @RequestMapping( value = "/user" )
+    @RequestMapping( "/user" )
     public ModelAndView changeUser(HttpServletRequest request, @RequestParam String id) {
 
         User user = userService.getUser(id);
