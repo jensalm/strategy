@@ -1,4 +1,4 @@
-package com.captechventures.strategies.navigation;
+package com.captechventures.sample.strategies.navigation;
 
 import org.springframework.web.servlet.ModelAndView;
 

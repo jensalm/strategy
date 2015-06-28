@@ -1,5 +1,6 @@
 package com.captechventures.strategies.navigation;
 
+import com.captechventures.sample.strategies.navigation.LimitedPremiumNavigationStrategy;
 import org.junit.Test;
 import org.springframework.web.servlet.ModelAndView;
 

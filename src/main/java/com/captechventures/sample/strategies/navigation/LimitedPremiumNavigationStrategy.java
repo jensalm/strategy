@@ -1,4 +1,4 @@
-package com.captechventures.strategies.navigation;
+package com.captechventures.sample.strategies.navigation;
 
 import com.captechventures.strategy.Strategy;
 import com.google.common.collect.Maps;
@@ -7,7 +7,7 @@ import org.springframework.web.servlet.ModelAndView;
 import java.util.Map;
 
 @Strategy(type=NavigationStrategy.class,
-        selector="#{#profile == T(com.captechventures.model.Profile).LIMITED or #profile == T(com.captechventures.model.Profile).PREMIUM}")
+        selector="#{#profile == T(Profile).LIMITED or #profile == T(Profile).PREMIUM}")
 public class LimitedPremiumNavigationStrategy implements NavigationStrategy {
 
     public void createNavigation(ModelAndView modelAndView) {

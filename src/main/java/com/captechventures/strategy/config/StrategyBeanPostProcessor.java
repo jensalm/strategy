@@ -1,4 +1,4 @@
-package com.captechventures.config;
+package com.captechventures.strategy.config;
 
 import com.captechventures.strategy.AnnotatedBean;
 import com.captechventures.strategy.Strategy;

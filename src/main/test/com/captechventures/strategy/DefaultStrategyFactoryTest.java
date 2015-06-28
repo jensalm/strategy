@@ -1,7 +1,7 @@
 package com.captechventures.strategy;
 
 import com.captechventures.config.StrategyBeanPostProcessor;
-import com.captechventures.model.Profile;
+import com.captechventures.sample.model.Profile;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -113,20 +113,20 @@ public class DefaultStrategyFactoryTest {
     private static class DefaultTestStrategy implements TestStrategy {
     }
 
-    @Strategy(type=TestStrategy.class, selector = "#{#profile == T(com.captechventures.model.Profile).FREE}")
+    @Strategy(type=TestStrategy.class, selector = "#{#profile == T(Profile).FREE}")
     private static class FreeTestStrategy implements TestStrategy {
     }
 
-    @Strategy(type=TestStrategy.class, selector = "#{#profile == T(com.captechventures.model.Profile).LIMITED}")
+    @Strategy(type=TestStrategy.class, selector = "#{#profile == T(Profile).LIMITED}")
     private static class LimitedTestStrategy implements TestStrategy {
     }
 
-    @Strategy(type=TestStrategy.class, selector = "#{#profile == T(com.captechventures.model.Profile).PREMIUM}")
+    @Strategy(type=TestStrategy.class, selector = "#{#profile == T(Profile).PREMIUM}")
     private static class PremiumTestStrategy implements TestStrategy {
     }
 
     @Strategy(type=TestStrategy.class,
-            selector = "#{#profile == T(com.captechventures.model.Profile).FREE or #profile == T(com.captechventures.model.Profile).PREMIUM}")
+            selector = "#{#profile == T(Profile).FREE or #profile == T(Profile).PREMIUM}")
     private static class FreeLimitedTestStrategy implements TestStrategy {
     }
 
@@ -136,12 +136,12 @@ public class DefaultStrategyFactoryTest {
     private static class DefaultSuperSpecialStrategy implements SuperSpecialStrategy {
     }
 
-    @Strategy(type=SuperSpecialStrategy.class, selector = "#{#profile == T(com.captechventures.model.Profile).FREE}")
+    @Strategy(type=SuperSpecialStrategy.class, selector = "#{#profile == T(Profile).FREE}")
     private static class FreeSuperSpecialStrategy implements SuperSpecialStrategy {
     }
 
     @Strategy(type=SuperSpecialStrategy.class,
-            selector = "#{#profile == T(com.captechventures.model.Profile).LIMITED or #profile == T(com.captechventures.model.Profile).PREMIUM}")
+            selector = "#{#profile == T(Profile).LIMITED or #profile == T(Profile).PREMIUM}")
     private static class LimitedPremiumSpecialStrategy implements SuperSpecialStrategy {
     }
 

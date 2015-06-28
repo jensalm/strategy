@@ -1,4 +1,4 @@
-package com.captechventures.strategies.navigation;
+package com.captechventures.sample.strategies.navigation;
 
 import com.captechventures.strategy.Strategy;
 import com.google.common.collect.Maps;

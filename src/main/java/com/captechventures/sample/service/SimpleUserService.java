@@ -1,7 +1,7 @@
-package com.captechventures.service;
+package com.captechventures.sample.service;
 
-import com.captechventures.model.Profile;
-import com.captechventures.model.User;
+import com.captechventures.sample.model.Profile;
+import com.captechventures.sample.model.User;
 import org.springframework.stereotype.Service;
 
 /**

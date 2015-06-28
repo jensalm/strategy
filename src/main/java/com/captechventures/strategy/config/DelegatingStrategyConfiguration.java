@@ -1,4 +1,4 @@
-package com.captechventures.config;
+package com.captechventures.strategy.config;
 
 import org.springframework.context.annotation.Configuration;
 

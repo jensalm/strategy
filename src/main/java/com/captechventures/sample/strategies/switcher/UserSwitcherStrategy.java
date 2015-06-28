@@ -1,4 +1,4 @@
-package com.captechventures.strategies.switcher;
+package com.captechventures.sample.strategies.switcher;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;

@@ -1,11 +1,11 @@
-package com.captechventures.controllers;
+package com.captechventures.sample.controllers;
 
 import com.captechventures.config.EnableStrategy;
-import com.captechventures.model.Profile;
-import com.captechventures.model.User;
-import com.captechventures.strategies.navigation.NavigationStrategy;
+import com.captechventures.sample.model.Profile;
+import com.captechventures.sample.model.User;
+import com.captechventures.sample.strategies.navigation.NavigationStrategy;
 import com.captechventures.service.UserService;
-import com.captechventures.strategies.switcher.UserSwitcherStrategy;
+import com.captechventures.sample.strategies.switcher.UserSwitcherStrategy;
 import com.captechventures.strategy.StrategyFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

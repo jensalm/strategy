@@ -1,4 +1,4 @@
-package com.captechventures.strategies.switcher;
+package com.captechventures.sample.strategies.switcher;
 
 import com.captechventures.strategy.Strategy;
 import com.google.common.collect.Maps;
@@ -6,8 +6,8 @@ import com.google.common.collect.Maps;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-@Strategy(type = UserSwitcherStrategy.class)
-public class DefaultUserSwitcherStrategy implements UserSwitcherStrategy {
+@Strategy(type = UserSwitcherStrategy.class, selector = "#{#profile == T(Profile).PREMIUM}")
+public class PremiumUserSwitcherStrategy implements UserSwitcherStrategy {
 
     @Override
     public Map<String, String> getLinks(HttpServletRequest request) {
@@ -16,7 +16,7 @@ public class DefaultUserSwitcherStrategy implements UserSwitcherStrategy {
 
         links.put("Free", request.getServletPath()+"/user?id=0");
         links.put("Limited", request.getServletPath()+"/user?id=1");
-        links.put("Premium", request.getServletPath()+"/user?id=2");
+        links.put("Premium", null);
 
         return links;
     }

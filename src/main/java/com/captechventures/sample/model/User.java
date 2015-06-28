@@ -1,4 +1,4 @@
-package com.captechventures.model;
+package com.captechventures.sample.model;
 
 public class User {
 

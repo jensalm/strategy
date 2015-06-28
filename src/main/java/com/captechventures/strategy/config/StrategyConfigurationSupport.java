@@ -1,9 +1,9 @@
-package com.captechventures.config;
+package com.captechventures.strategy.config;
 
 import com.captechventures.strategy.DefaultStrategyFactory;
 import org.springframework.context.annotation.Bean;
 
-public class WorkFlowConfigurationSupport {
+public class StrategyConfigurationSupport {
 
     @Bean
     public StrategyBeanPostProcessor createStrategyBeanPostProcessor() {
