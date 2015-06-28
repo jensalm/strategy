@@ -1,5 +1,6 @@
 package com.captechventures.controllers;
 
+import com.captechventures.config.EnableStrategy;
 import com.captechventures.model.Profile;
 import com.captechventures.model.User;
 import com.captechventures.strategies.navigation.NavigationStrategy;
@@ -17,6 +18,7 @@ import java.util.Collections;
 import java.util.Map;
 
 @Controller
+@EnableStrategy
 public class StartPageController {
 
     private static final String SESSION_KEY = "user_id";

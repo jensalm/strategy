@@ -1,128 +1,56 @@
 package com.captechventures.strategy;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.stereotype.Repository;
-import org.springframework.util.Assert;
+import java.util.List;
+import java.util.Map;
 
-import javax.annotation.PostConstruct;
-
-import org.slf4j.*;
-
-import java.util.*;
-
-/**
- * ‘
- * Factory to look up different strategies at runtime.
- *
- * @see Strategy
- */
-@Repository
-public class StrategyFactory {
-
-    private static final Logger LOG = LoggerFactory.getLogger(StrategyFactory.class);
-
-    @Autowired
-    private ApplicationContext applicationContext;
-
-    private Map<Class, List<AnnotatedBean>> strategies = new HashMap<>();
+public interface StrategyFactory {
 
     /**
-     * Finds all beans annotated with Strategy. Does a quick sanity
-     * check so only one strategy exists for each selector value.
-     *
-     * @see Strategy
+     * Find a strategy based on a context using an SpEL expression in the Strategy
+     * @param strategyType the interface that represents the strategy
+     * @param context the values to use as the context while evaluating which strategy to use
+     * @param <T> an interface class that is used as a strategy
+     * @return the matching implementation of this strategy
      */
-    @PostConstruct
-    public void init() {
+    <T> T getStrategy(Class<T> strategyType, Map<String, Object> context);
 
-        Map<String, Object> annotatedBeanClasses = applicationContext.getBeansWithAnnotation(Strategy.class);
+    /**
+     * Find a strategy based on a context using a selector
+     * @param strategyType the interface that represents the strategy
+     * @param selector an
+     * @param <T> an interface class that is used as a strategy
+     * @return the matching implementation of this strategy
+     * @see Selector
+     */
+    <T> T getStrategy(Class<T> strategyType, Selector<T> selector);
 
-        for (Object bean : annotatedBeanClasses.values()) {
-            Strategy strategyAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), Strategy.class);
-            if (!strategies.containsKey(strategyAnnotation.type())) {
-                strategies.put(strategyAnnotation.type(), new ArrayList<>());
-            }
-            ifNotExistAdd(strategies.get(strategyAnnotation.type()), strategyAnnotation, bean);
-        }
+    /**
+     * Adds a new type of a strategy
+     * @param clz the interface that this strategy uses
+     * @param annotatedBeans a list of annotated beans
+     * @see AnnotatedBean
+     * @param <T> an interface class that is used as a strategy
+     */
+    void add(Class clz, List<AnnotatedBean> annotatedBeans);
 
-        sanityCheck();
-    }
 
-    private void sanityCheck() {
+    /**
+     * Add a set of annotated beans for a strategy
+     * @param strategies a map of strategies, key is class of
+     *                   the interface and value is a list of annotated beans
+     */
+    void add(Map<Class, List<AnnotatedBean>> strategies);
 
-        Map<String, AnnotatedBean> selectors = new HashMap<>();
-        for (List<AnnotatedBean> annotatedBeans : strategies.values()) {
-            for (AnnotatedBean annotatedBean : annotatedBeans) {
-                String selector = annotatedBean.getStrategy().selector();
-                if (selector != null && !selector.equals("")) {
-                    AnnotatedBean otherBean = selectors.get(selector);
-                    if (otherBean != null && otherBean.getStrategy().type().equals(annotatedBean.getStrategy().type())) {
-                        throw new RuntimeException("Selectors must be unique for each strategy, duplicate selector '" + selector + "'");
-                    }
-                    selectors.put(selector, annotatedBean);
-                }
-            }
-        }
+    /**
+     * Removes a type of strategy
+     * @param clz the interface that this strategy uses
+     * @see AnnotatedBean
+     * @param <T> an interface class that is used as a strategy
+     */
+    void remove(Class clz);
 
-        for (Class strategyClass : strategies.keySet()) {
-            if (!hasDefaultStrategy(strategyClass)) {
-                throw new RuntimeException("Each strategy must have a default fallback strategy, strategy missing default: " + strategyClass.getName());
-            }
-        }
-    }
-
-    private boolean hasDefaultStrategy(Class strategyClass) {
-        List<AnnotatedBean> annotatedBeans = strategies.get(strategyClass);
-        for (AnnotatedBean annotatedBean : annotatedBeans) {
-            if (annotatedBean.isDefaultStrategy()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private AnnotatedBean ifNotExistAdd(List<AnnotatedBean> beans, Strategy strategyAnnotation, Object bean) {
-        for (AnnotatedBean ab : beans) {
-            if (ab.getBean().equals(bean)) {
-                return ab;
-            }
-        }
-        AnnotatedBean annotatedBean = new AnnotatedBean<>(bean, strategyAnnotation, isDefault(strategyAnnotation));
-        strategies.get(strategyAnnotation.type()).add(annotatedBean);
-        return annotatedBean;
-    }
-
-    private boolean isDefault(Strategy strategyAnnotation) {
-        return (strategyAnnotation.selector() == null || strategyAnnotation.selector().equals(""));
-    }
-
-    public <T> T getStrategy(Class<T> strategyType, Map<String, Object> context) {
-        return getStrategy(strategyType, new DefaultSelector<>(context));
-    }
-
-    public <T> T getStrategy(Class<T> strategyType, Selector<T> selector) {
-
-        List<AnnotatedBean> strategyBeans = strategies.get(strategyType);
-        Assert.notEmpty(strategyBeans, String.format("No strategies found of type '%s', are the strategies marked with @Strategy?", strategyType.getName()));
-
-        T chosenStrategy = selector.select(strategyBeans);
-        //noinspection unchecked
-        if (chosenStrategy != null) {
-            return chosenStrategy;
-        }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("No strategy selected, using default strategy");
-        }
-        for (AnnotatedBean annotatedBean : strategyBeans) {
-            if (isDefault(annotatedBean.getStrategy())) {
-                //noinspection unchecked
-                return (T) annotatedBean.getBean();
-            }
-        }
-
-        throw new RuntimeException(String.format("No strategy found for type '%s'", strategyType));
-    }
-
+    /**
+     * Clears all strategies
+     */
+    void clear();
 }

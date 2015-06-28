@@ -13,7 +13,7 @@ import java.lang.annotation.*;
  * The StrategyFactory will automatically get the correct strategy for the
  * profile of the user.
  * group.
- * @see StrategyFactory
+ * @see DefaultStrategyFactory
  * @see Strategy#type()
  * @see Strategy#selector()
  */

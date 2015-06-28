@@ -1,12 +1,13 @@
 package com.captechventures.strategy;
 
+import com.captechventures.config.StrategyBeanPostProcessor;
 import com.captechventures.model.Profile;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,13 +17,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-public class StrategyFactoryTest {
+public class DefaultStrategyFactoryTest {
 
     @InjectMocks
-    private final StrategyFactory factory = new StrategyFactory();
+    private final StrategyBeanPostProcessor strategyBeanPostProcessor = new StrategyBeanPostProcessor();
+
+    private DefaultStrategyFactory defaultStrategyFactory = new DefaultStrategyFactory();
 
     @Mock
-    private ApplicationContext applicationContext;
+    private ConfigurableListableBeanFactory beanFactory;
 
     @Before
     public void init() {
@@ -36,9 +39,10 @@ public class StrategyFactoryTest {
         annotatedBeans.put("bean_default", new DefaultTestStrategy());
         annotatedBeans.put("bean_premium_2", new PremiumTestStrategy());
 
-        when(applicationContext.getBeansWithAnnotation(Strategy.class)).thenReturn(annotatedBeans);
+        when(beanFactory.getBeansWithAnnotation(Strategy.class)).thenReturn(annotatedBeans);
 
-        factory.init();
+        strategyBeanPostProcessor.setBeanFactory(beanFactory);
+        strategyBeanPostProcessor.postProcessAfterInitialization(defaultStrategyFactory, "defaultStrategyFactory");
     }
 
     @Test
@@ -49,11 +53,11 @@ public class StrategyFactoryTest {
         annotatedBeans.put("bean_default", new DefaultTestStrategy());
         annotatedBeans.put("bean_default_super", new DefaultSuperSpecialStrategy());
 
-        when(applicationContext.getBeansWithAnnotation(Strategy.class)).thenReturn(annotatedBeans);
+        when(beanFactory.getBeansWithAnnotation(Strategy.class)).thenReturn(annotatedBeans);
 
-        factory.init();
+        strategyBeanPostProcessor.postProcessAfterInitialization(defaultStrategyFactory, "defaultStrategyFactory");
 
-        TestStrategy strategy = factory.getStrategy(TestStrategy.class, Collections.singletonMap("profile", Profile.PREMIUM));
+        TestStrategy strategy = defaultStrategyFactory.getStrategy(TestStrategy.class, Collections.singletonMap("profile", Profile.PREMIUM));
         assertEquals("Strategy returned was for the wrong profile", strategy.getClass(), PremiumTestStrategy.class);
     }
 
@@ -65,11 +69,11 @@ public class StrategyFactoryTest {
         annotatedBeans.put("bean_default", new DefaultTestStrategy());
         annotatedBeans.put("bean_default_super", new DefaultSuperSpecialStrategy());
 
-        when(applicationContext.getBeansWithAnnotation(Strategy.class)).thenReturn(annotatedBeans);
+        when(beanFactory.getBeansWithAnnotation(Strategy.class)).thenReturn(annotatedBeans);
 
-        factory.init();
+        strategyBeanPostProcessor.postProcessAfterInitialization(defaultStrategyFactory, "defaultStrategyFactory");
 
-        SuperSpecialStrategy strategy = factory.getStrategy(SuperSpecialStrategy.class, Collections.singletonMap("profile", Profile.PREMIUM));
+        SuperSpecialStrategy strategy = defaultStrategyFactory.getStrategy(SuperSpecialStrategy.class, Collections.singletonMap("profile", Profile.PREMIUM));
         assertEquals("Strategy returned was for the wrong profile", strategy.getClass(), LimitedPremiumSpecialStrategy.class);
     }
 
@@ -81,11 +85,11 @@ public class StrategyFactoryTest {
         annotatedBeans.put("bean_default", new DefaultTestStrategy());
         annotatedBeans.put("bean_default_super", new DefaultSuperSpecialStrategy());
 
-        when(applicationContext.getBeansWithAnnotation(Strategy.class)).thenReturn(annotatedBeans);
+        when(beanFactory.getBeansWithAnnotation(Strategy.class)).thenReturn(annotatedBeans);
 
-        factory.init();
+        strategyBeanPostProcessor.postProcessAfterInitialization(defaultStrategyFactory, "defaultStrategyFactory");
 
-        TestStrategy strategy = factory.getStrategy(TestStrategy.class, Collections.emptyMap());
+        TestStrategy strategy = defaultStrategyFactory.getStrategy(TestStrategy.class, Collections.emptyMap());
         assertTrue("Strategy returned was for the wrong profile", strategy instanceof DefaultTestStrategy);
     }
 
@@ -96,11 +100,11 @@ public class StrategyFactoryTest {
         annotatedBeans.put("bean_limited", new LimitedTestStrategy());
         annotatedBeans.put("bean_premium", new PremiumTestStrategy());
 
-        when(applicationContext.getBeansWithAnnotation(Strategy.class)).thenReturn(annotatedBeans);
+        when(beanFactory.getBeansWithAnnotation(Strategy.class)).thenReturn(annotatedBeans);
 
-        factory.init();
+        strategyBeanPostProcessor.postProcessAfterInitialization(defaultStrategyFactory, "defaultStrategyFactory");
 
-        factory.getStrategy(SuperSpecialStrategy.class, Collections.singletonMap("profile", Profile.PREMIUM));
+        defaultStrategyFactory.getStrategy(SuperSpecialStrategy.class, Collections.singletonMap("profile", Profile.PREMIUM));
     }
 
     private interface TestStrategy {}
