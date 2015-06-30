@@ -1,7 +1,7 @@
 package com.captechventures.strategy;
 
-import com.captechventures.config.StrategyBeanPostProcessor;
 import com.captechventures.sample.model.Profile;
+import com.captechventures.strategy.config.StrategyBeanPostProcessor;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
