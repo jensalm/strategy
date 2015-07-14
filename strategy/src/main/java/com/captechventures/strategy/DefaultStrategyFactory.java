@@ -16,17 +16,35 @@ public class DefaultStrategyFactory implements StrategyFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultStrategyFactory.class);
 
-    private Map<Class, List<AnnotatedBean>> strategies = new HashMap<>();
+    private Map strategies = new HashMap<>();
 
+    /**
+     * Uses Spring Expression Language (SpEL) to evaluate which strategy should be selected
+     * @param strategyType the interface that represents the strategy
+     * @param context the values to use as the context while evaluating which strategy to use
+     * @param <T> an interface class that is used as a strategy
+     * @return the matching implementation of this strategy
+     */
     @Override
     public <T> T getStrategy(Class<T> strategyType, Map<String, Object> context) {
-        return getStrategy(strategyType, new DefaultSelector<>(context));
+        return getStrategy(strategyType, strategyBeans -> {
+            StrategySelectorEvaluator evaluator = new StrategySelectorEvaluator(context);
+            for (AnnotatedBean<T> bean : strategyBeans) {
+                Strategy strategyAnnotation = bean.getStrategy();
+                Boolean selected = evaluator.getSelector(strategyAnnotation.selector());
+                if (selected != null && selected) {
+                    LOG.debug(String.format("Found strategy of type '%s' matching expression '%s'", strategyAnnotation.type(), strategyAnnotation.selector()));
+                    return bean.getBean();
+                }
+            }
+            return null;
+        });
     }
 
     @Override
     public <T> T getStrategy(Class<T> strategyType, Selector<T> selector) {
 
-        List<AnnotatedBean> strategyBeans = strategies.get(strategyType);
+        List<AnnotatedBean<T>> strategyBeans = (List<AnnotatedBean<T>>)strategies.get(strategyType);
         Assert.notEmpty(strategyBeans, String.format("No strategies found of type '%s', are the strategies marked with @Strategy?", strategyType.getName()));
 
         T chosenStrategy = selector.select(strategyBeans);
@@ -37,10 +55,10 @@ public class DefaultStrategyFactory implements StrategyFactory {
         if (LOG.isDebugEnabled()) {
             LOG.debug("No strategy selected, using default strategy");
         }
-        for (AnnotatedBean annotatedBean : strategyBeans) {
+        for (AnnotatedBean<T> annotatedBean : strategyBeans) {
             if (annotatedBean.isDefaultStrategy()) {
                 //noinspection unchecked
-                return (T) annotatedBean.getBean();
+                return annotatedBean.getBean();
             }
         }
 
@@ -48,17 +66,17 @@ public class DefaultStrategyFactory implements StrategyFactory {
     }
 
     @Override
-    public void add(Class clz, List<AnnotatedBean> annotatedBeans) {
+    public <T> void add(Class<T> clz, List<AnnotatedBean<T>> annotatedBeans) {
         this.strategies.put(clz, annotatedBeans);
     }
 
     @Override
-    public void add(Map<Class, List<AnnotatedBean>> strategies) {
+    public <T> void add(Map<Class<T>, List<AnnotatedBean<T>>> strategies) {
         this.strategies.putAll(strategies);
     }
 
     @Override
-    public void remove(Class clz) {
+    public <T> void remove(Class<T> clz) {
         this.strategies.remove(clz);
     }
 
@@ -66,4 +84,6 @@ public class DefaultStrategyFactory implements StrategyFactory {
     public void clear() {
         this.strategies.clear();
     }
+
+
 }

@@ -12,7 +12,7 @@
     </ul>
 
     <p>
-        Lorem ipsum...
+        ${content}
     </p>
 
     <p>Switch User:

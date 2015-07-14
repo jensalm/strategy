@@ -31,7 +31,7 @@ public interface StrategyFactory {
      * @see AnnotatedBean
      * @param <T> an interface class that is used as a strategy
      */
-    void add(Class clz, List<AnnotatedBean> annotatedBeans);
+    <T> void add(Class<T> clz, List<AnnotatedBean<T>> annotatedBeans);
 
 
     /**
@@ -39,7 +39,7 @@ public interface StrategyFactory {
      * @param strategies a map of strategies, key is class of
      *                   the interface and value is a list of annotated beans
      */
-    void add(Map<Class, List<AnnotatedBean>> strategies);
+    <T> void add(Map<Class<T>, List<AnnotatedBean<T>>> strategies);
 
     /**
      * Removes a type of strategy
@@ -47,7 +47,7 @@ public interface StrategyFactory {
      * @see AnnotatedBean
      * @param <T> an interface class that is used as a strategy
      */
-    void remove(Class clz);
+    <T> void remove(Class<T> clz);
 
     /**
      * Clears all strategies

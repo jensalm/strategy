@@ -27,5 +27,4 @@ public @interface Strategy {
 
     String selector() default "";
 
-    boolean fallback() default false;
 }

@@ -4,6 +4,6 @@ import java.util.List;
 
 public interface Selector<T> {
 
-    T select(List<AnnotatedBean> strategyBeans);
+    T select(List<AnnotatedBean<T>> strategyBeans);
 
 }

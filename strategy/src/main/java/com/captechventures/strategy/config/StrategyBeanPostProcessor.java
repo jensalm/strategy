@@ -39,7 +39,7 @@ public class StrategyBeanPostProcessor implements BeanPostProcessor, BeanFactory
 
             Map<String, Object> annotatedBeanClasses = beanFactory.getBeansWithAnnotation(Strategy.class);
 
-            Map<Class, List<AnnotatedBean>> strategies = new HashMap<>();
+            Map<Class<Object>, List<AnnotatedBean<Object>>> strategies = new HashMap<>();
 
             for (Object b : annotatedBeanClasses.values()) {
                 Strategy strategyAnnotation = AnnotationUtils.findAnnotation(b.getClass(), Strategy.class);
@@ -59,10 +59,10 @@ public class StrategyBeanPostProcessor implements BeanPostProcessor, BeanFactory
         return o;
     }
 
-    private void sanityCheck(Map<Class, List<AnnotatedBean>> strategies) {
+    private void sanityCheck(Map<Class<Object>, List<AnnotatedBean<Object>>> strategies) {
 
         Map<String, AnnotatedBean> selectors = new HashMap<>();
-        for (List<AnnotatedBean> annotatedBeans : strategies.values()) {
+        for (List<AnnotatedBean<Object>> annotatedBeans : strategies.values()) {
             for (AnnotatedBean annotatedBean : annotatedBeans) {
                 String selector = annotatedBean.getStrategy().selector();
                 if (selector != null && !selector.equals("")) {
@@ -82,8 +82,8 @@ public class StrategyBeanPostProcessor implements BeanPostProcessor, BeanFactory
         }
     }
 
-    private boolean hasDefaultStrategy(Map<Class, List<AnnotatedBean>> strategies, Class strategyClass) {
-        List<AnnotatedBean> annotatedBeans = strategies.get(strategyClass);
+    private boolean hasDefaultStrategy(Map<Class<Object>, List<AnnotatedBean<Object>>> strategies, Class strategyClass) {
+        List<AnnotatedBean<Object>> annotatedBeans = strategies.get(strategyClass);
         for (AnnotatedBean annotatedBean : annotatedBeans) {
             if (annotatedBean.isDefaultStrategy()) {
                 return true;
@@ -92,7 +92,7 @@ public class StrategyBeanPostProcessor implements BeanPostProcessor, BeanFactory
         return false;
     }
 
-    private AnnotatedBean ifNotExistAdd(Map<Class, List<AnnotatedBean>> strategies, List<AnnotatedBean> beans, Strategy strategyAnnotation, Object bean) {
+    private AnnotatedBean ifNotExistAdd(Map<Class<Object>, List<AnnotatedBean<Object>>> strategies, List<AnnotatedBean<Object>> beans, Strategy strategyAnnotation, Object bean) {
         for (AnnotatedBean ab : beans) {
             if (ab.getBean().equals(bean)) {
                 return ab;
