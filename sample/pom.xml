@@ -10,6 +10,12 @@
     <artifactId>Sample</artifactId>
     <packaging>war</packaging>
 
+    <properties>
+        <start-class>com.captechventures.strategy.sample.Application</start-class>
+        <spring.view.prefix>/WEB-INF/view/</spring.view.prefix>
+        <spring.view.suffix>.jsp</spring.view.suffix>
+    </properties>
+
     <dependencies>
 
         <dependency>
@@ -24,10 +30,26 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- UI -->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-jasper</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+        </dependency>
+
         <!-- Logging -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${ch.qos.logback.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -86,16 +108,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <mainClass>${start-class}</mainClass>
-                </configuration>
             </plugin>
         </plugins>
 

@@ -20,8 +20,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.slf4j.version>1.7.2</org.slf4j.version>
         <ch.qos.logback.version>0.9.24</ch.qos.logback.version>
-        <start-class>com.captechventures.strategy.sample.Application</start-class>
         <java.version>1.8</java.version>
+        <start-class>com.captechventures.strategy.sample.Application</start-class>
+        <spring.view.prefix>/WEB-INF/view/</spring.view.prefix>
+        <spring.view.suffix>.jsp</spring.view.suffix>
     </properties>
 
     <repositories>
@@ -108,6 +110,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+
     </dependencies>
 
 </project>

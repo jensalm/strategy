@@ -2,6 +2,7 @@ package com.captechventures.strategy.sample.strategies.switcher;
 
 import com.captechventures.strategy.Strategy;
 import com.google.common.collect.Maps;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
@@ -14,9 +15,9 @@ public class DefaultUserSwitcherStrategy implements UserSwitcherStrategy {
 
         Map<String, String> links = Maps.newLinkedHashMap();
 
-        links.put("Free", request.getServletPath()+"/user?id=0");
-        links.put("Limited", request.getServletPath()+"/user?id=1");
-        links.put("Premium", request.getServletPath()+"/user?id=2");
+        links.put("Free", ServletUriComponentsBuilder.fromCurrentContextPath().pathSegment("user").query("id=0").toUriString());
+        links.put("Limited", ServletUriComponentsBuilder.fromCurrentContextPath().pathSegment("user").query("id=1").toUriString());
+        links.put("Premium", ServletUriComponentsBuilder.fromCurrentContextPath().pathSegment("user").query("id=2").toUriString());
 
         return links;
     }
