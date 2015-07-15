@@ -15,7 +15,7 @@ public interface StrategyFactory {
     <T> T getStrategy(Class<T> strategyType, Map<String, Object> context);
 
     /**
-     * Find a strategy based on a context using a selector
+     * Find a strategy based on a context using a value
      * @param strategyType the interface that represents the strategy
      * @param selector an
      * @param <T> an interface class that is used as a strategy

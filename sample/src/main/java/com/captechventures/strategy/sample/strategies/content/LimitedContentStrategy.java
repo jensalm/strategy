@@ -2,7 +2,7 @@ package com.captechventures.strategy.sample.strategies.content;
 
 import com.captechventures.strategy.Strategy;
 
-@Strategy(selector = "LIMITED")
+@Strategy("LIMITED")
 public class LimitedContentStrategy implements ContentStrategy {
 
     @Override

@@ -8,13 +8,11 @@ import java.lang.annotation.*;
  * A strategy is a small(ish) class of code that can be applied in several
  * places or as a way of breaking out complex parts into it's own class so
  * it can be easily tested.
- * If markets or deviceGroups is set, there must always be a default (no
- * markets and no deviceGroups) of the same type.
- * The StrategyFactory will automatically get the correct strategy for the
- * profile of the user.
+ * The StrategyFactory will pick the correct strategy for based on the selector used.
  * group.
  * @see DefaultStrategyFactory
- * @see Strategy#selector()
+ * @see Strategy#value()
+ * @see Selector
  */
 @Documented
 @Target({ ElementType.TYPE })
@@ -26,6 +24,6 @@ public @interface Strategy {
      * A value that distinguishes each implementation of the strategy.
      * @return a unique (for this strategy) value
      */
-    String selector() default "";
+    String value() default "";
 
 }

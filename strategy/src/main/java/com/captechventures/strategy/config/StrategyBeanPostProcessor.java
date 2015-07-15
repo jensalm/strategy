@@ -31,7 +31,7 @@ public class StrategyBeanPostProcessor implements BeanPostProcessor, BeanFactory
 
     /**
      * Finds all beans annotated with Strategy. Does a quick sanity
-     * check so only one strategy exists for each selector value.
+     * check so only one strategy exists for each value.
      *
      * @see Strategy
      */
@@ -68,7 +68,7 @@ public class StrategyBeanPostProcessor implements BeanPostProcessor, BeanFactory
     /**
      * Checks that each strategy has only unique selectors.
      * @param strategies
-     * @throws BeanInitializationException if a duplicate selector is found
+     * @throws BeanInitializationException if a duplicate value is found
      */
     private void sanityCheck(Map<Class<Object>, List<AnnotatedBean<Object>>> strategies) {
 
@@ -77,10 +77,10 @@ public class StrategyBeanPostProcessor implements BeanPostProcessor, BeanFactory
             List<AnnotatedBean<Object>> annotatedBeans = strategies.get(strategyClass);
 
             for (AnnotatedBean annotatedBean : annotatedBeans) {
-                String selector = annotatedBean.getStrategy().selector();
+                String selector = annotatedBean.getStrategy().value();
                 if (selector != null && !selector.equals("")) {
                     if (selectors.contains(strategyClass.getName() + selector)) {
-                        throw new BeanInitializationException(String.format("Selectors must be unique for each strategy, strategy of type {}  has a duplicate selector '{}'", strategyClass.getName(), selector));
+                        throw new BeanInitializationException(String.format("The strategy's values must be unique, strategy of type {} has a duplicate value '{}'", strategyClass.getName(), selector));
                     }
                     selectors.add(strategyClass.getName() + selector);
                 }
@@ -126,7 +126,7 @@ public class StrategyBeanPostProcessor implements BeanPostProcessor, BeanFactory
     }
 
     private boolean isDefault(Strategy strategyAnnotation) {
-        return (strategyAnnotation.selector() == null || strategyAnnotation.selector().equals(""));
+        return (strategyAnnotation.value() == null || strategyAnnotation.value().equals(""));
     }
 
 }

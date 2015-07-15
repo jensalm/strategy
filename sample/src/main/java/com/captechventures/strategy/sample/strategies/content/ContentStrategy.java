@@ -1,7 +1,7 @@
 package com.captechventures.strategy.sample.strategies.content;
 
 /**
- * Strategy using a different selector than the default.
+ * Strategy demonstrating a lambda selector.
  */
 public interface ContentStrategy {
 

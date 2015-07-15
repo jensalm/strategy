@@ -81,11 +81,11 @@ public class DefaultStrategyFactoryTest {
     private static class DefaultTestStrategy implements TestStrategy {
 
     }
-    @Strategy(selector = "#{#number == 2}")
+    @Strategy("#{#number == 2}")
     private static class NumberTwoTestStrategy implements TestStrategy {
 
     }
-    @Strategy(selector = "#{#number == 3}")
+    @Strategy("#{#number == 3}")
     private static class NumberThreeTestStrategy implements TestStrategy {
 
     }
@@ -96,7 +96,7 @@ public class DefaultStrategyFactoryTest {
     private static class DefaultSpecialStrategy implements SpecialStrategy {
 
     }
-    @Strategy(selector = "#{#number == 2 or #number == 3}")
+    @Strategy("#{#number == 2 or #number == 3}")
     private static class NumberTwoAndThreeSpecialStrategy implements SpecialStrategy {
 
     }
@@ -112,15 +112,15 @@ public class DefaultStrategyFactoryTest {
     private static class DefaultMultipleInterfacesStrategy implements MultipleInterfacesStrategy, RegularInterface {
 
     }
-    @Strategy(selector = "#{#number == 1}")
+    @Strategy("#{#number == 1}")
     private static class NumberOneMultipleInterfacesStrategy implements MultipleInterfacesStrategy, OtherRegularInterface {
 
     }
-    @Strategy(selector = "#{#number == 2}")
+    @Strategy("#{#number == 2}")
     private static class NumberTwoMultipleInterfacesStrategy implements MultipleInterfacesStrategy {
 
     }
-    @Strategy(selector = "#{#number == 3}")
+    @Strategy("#{#number == 3}")
     private static class NumberThreeMultipleInterfacesStrategy implements MultipleInterfacesStrategy, RegularInterface, OtherRegularInterface {
 
     }

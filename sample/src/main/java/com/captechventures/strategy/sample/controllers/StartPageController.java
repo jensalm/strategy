@@ -1,8 +1,6 @@
 package com.captechventures.strategy.sample.controllers;
 
 import com.captechventures.strategy.AnnotatedBean;
-import com.captechventures.strategy.Selector;
-import com.captechventures.strategy.Strategy;
 import com.captechventures.strategy.sample.model.Profile;
 import com.captechventures.strategy.sample.model.User;
 import com.captechventures.strategy.sample.service.UserService;
@@ -18,7 +16,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -46,7 +43,7 @@ public class StartPageController {
         // Get a strategy using lambda
         ContentStrategy contentStrategy = strategyFactory.getStrategy(ContentStrategy.class, strategyBeans -> {
             for (AnnotatedBean<ContentStrategy> bean : strategyBeans) {
-                if (profile != null && profile.name().equals(bean.getStrategy().selector())) {
+                if (profile != null && profile.name().equals(bean.getStrategy().value())) {
                     return bean.getBean();
                 }
             }

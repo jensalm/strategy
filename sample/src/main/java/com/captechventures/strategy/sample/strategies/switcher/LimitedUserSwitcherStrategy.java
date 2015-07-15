@@ -7,7 +7,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-@Strategy(selector = "#{#profile == T(com.captechventures.strategy.sample.model.Profile).LIMITED}")
+@Strategy("#{#profile == T(com.captechventures.strategy.sample.model.Profile).LIMITED}")
 public class LimitedUserSwitcherStrategy implements UserSwitcherStrategy {
 
     @Override

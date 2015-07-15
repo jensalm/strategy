@@ -31,9 +31,9 @@ public class DefaultStrategyFactory implements StrategyFactory {
             StrategySelectorEvaluator evaluator = new StrategySelectorEvaluator(context);
             for (AnnotatedBean<T> bean : strategyBeans) {
                 Strategy strategyAnnotation = bean.getStrategy();
-                Boolean selected = evaluator.getSelector(strategyAnnotation.selector());
+                Boolean selected = evaluator.getSelector(strategyAnnotation.value());
                 if (selected != null && selected) {
-                    LOG.debug(String.format("Found strategy of type '%s' matching expression '%s'", strategyType, strategyAnnotation.selector()));
+                    LOG.debug(String.format("Found strategy of type '%s' matching expression '%s'", strategyType, strategyAnnotation.value()));
                     return bean.getBean();
                 }
             }
