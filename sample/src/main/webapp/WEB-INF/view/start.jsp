@@ -3,29 +3,36 @@
 <html>
 <head>
     <title>Strategy Pattern Example</title>
+    <link type="text/css" rel="stylesheet" href="<c:url value="/css/main.css" />" />
 </head>
 
-    <ul>
-        <c:forEach items="${navigation}" var="item">
-            <li><a href="${item.value}">${item.key}</a></li>
-        </c:forEach>
-    </ul>
+    <nav>
+        <ul class="top">
+            <c:forEach items="${navigation}" var="item">
+                <li><a href="${item.value}">${item.key}</a></li>
+            </c:forEach>
+        </ul>
+    </nav>
 
-    <p>
-        ${content}
-    </p>
+    <main>
+        <p>
+            ${content}
+        </p>
+    </main>
 
-    <p>Switch User:
-        <c:forEach items="${links}" var="item">
-            <c:choose>
-                <c:when test="${not empty item.value}">
-                    <a href="${item.value}">${item.key}</a>
-                </c:when>
-                <c:otherwise>
-                    ${item.key}
-                </c:otherwise>
-            </c:choose>
-        </c:forEach>
-    </p>
+    <nav>
+        <ul class="bottom">Switch User:
+            <c:forEach items="${links}" var="item">
+                <c:choose>
+                    <c:when test="${not empty item.value}">
+                        <li><a href="${item.value}">${item.key}</a></li>
+                    </c:when>
+                    <c:otherwise>
+                        <li>${item.key}</li>
+                    </c:otherwise>
+                </c:choose>
+            </c:forEach>
+        </ul>
+    </nav>
 
 </html>

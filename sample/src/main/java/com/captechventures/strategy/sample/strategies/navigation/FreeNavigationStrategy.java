@@ -6,7 +6,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Map;
 
-@Strategy(type=NavigationStrategy.class)
+@Strategy
 public class FreeNavigationStrategy implements NavigationStrategy {
 
     @Override

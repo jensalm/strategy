@@ -1,145 +1,141 @@
 package com.captechventures.strategy;
 
-import com.captechventures.strategy.config.StrategyBeanPostProcessor;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.mockito.internal.util.reflection.Whitebox;
+import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.core.annotation.AnnotationUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
 
 public class DefaultStrategyFactoryTest {
 
-    @InjectMocks
-    private final StrategyBeanPostProcessor strategyBeanPostProcessor = new StrategyBeanPostProcessor();
-
-    private StrategyFactory defaultStrategyFactory = new DefaultStrategyFactory();
-
-    @Mock
-    private ConfigurableListableBeanFactory beanFactory;
+    private DefaultStrategyFactory strategyFactory = new DefaultStrategyFactory();
 
     @Before
     public void init() {
-        MockitoAnnotations.initMocks(this);
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void sanityCheckShouldFailBecauseOfSeveralStrategiesForTheProfile() {
-        Map<String, Object> annotatedBeans = new HashMap<>();
-        annotatedBeans.put("bean_premium", new PremiumTestStrategy());
-        annotatedBeans.put("bean_default", new DefaultTestStrategy());
-        annotatedBeans.put("bean_premium_2", new PremiumTestStrategy());
-
-        when(beanFactory.getBeansWithAnnotation(Strategy.class)).thenReturn(annotatedBeans);
-
-        strategyBeanPostProcessor.setBeanFactory(beanFactory);
-        strategyBeanPostProcessor.postProcessAfterInitialization(defaultStrategyFactory, "defaultStrategyFactory");
+        setStrategies(null);
     }
 
     @Test
-    public void shouldGetRegularPremium() {
-        Map<String, Object> annotatedBeans = new HashMap<>();
-        annotatedBeans.put("bean_premium", new PremiumTestStrategy());
-        annotatedBeans.put("bean_limitedpremium_super", new LimitedPremiumSpecialStrategy());
-        annotatedBeans.put("bean_default", new DefaultTestStrategy());
-        annotatedBeans.put("bean_default_super", new DefaultSuperSpecialStrategy());
+    public void shouldGetNumberThreeTestStrategy() {
+        Map<Class, List<AnnotatedBean>> annotatedBeans = new HashMap<>();
+        annotatedBeans.put(TestStrategy.class, Arrays.asList(create(new DefaultTestStrategy(), true), create(new NumberTwoTestStrategy()), create(new NumberThreeTestStrategy())));
+        annotatedBeans.put(SpecialStrategy.class, Arrays.asList(create(new DefaultSpecialStrategy(), true), create(new NumberTwoAndThreeSpecialStrategy())));
+        setStrategies(annotatedBeans);
 
-        when(beanFactory.getBeansWithAnnotation(Strategy.class)).thenReturn(annotatedBeans);
-
-        strategyBeanPostProcessor.postProcessAfterInitialization(defaultStrategyFactory, "defaultStrategyFactory");
-
-        TestStrategy strategy = defaultStrategyFactory.getStrategy(TestStrategy.class, Collections.singletonMap("profile", "PREMIUM"));
-        assertEquals("Strategy returned was for the wrong profile", strategy.getClass(), PremiumTestStrategy.class);
+        TestStrategy strategy = strategyFactory.getStrategy(TestStrategy.class, Collections.singletonMap("number", 3));
+        assertEquals("Strategy returned was for the wrong number", NumberThreeTestStrategy.class, strategy.getClass());
     }
 
     @Test
-    public void shouldGetSpecialPremium() {
-        Map<String, Object> annotatedBeans = new HashMap<>();
-        annotatedBeans.put("bean_premium", new PremiumTestStrategy());
-        annotatedBeans.put("bean_limitedpremium_super", new LimitedPremiumSpecialStrategy());
-        annotatedBeans.put("bean_default", new DefaultTestStrategy());
-        annotatedBeans.put("bean_default_super", new DefaultSuperSpecialStrategy());
+    public void shouldGetNumberTwoSpecialStrategy() {
+        Map<Class, List<AnnotatedBean>> annotatedBeans = new HashMap<>();
+        annotatedBeans.put(TestStrategy.class, Arrays.asList(create(new DefaultTestStrategy(), true), create(new NumberTwoTestStrategy())));
+        annotatedBeans.put(SpecialStrategy.class, Arrays.asList(create(new DefaultSpecialStrategy(), true), create(new NumberTwoAndThreeSpecialStrategy())));
+        setStrategies(annotatedBeans);
 
-        when(beanFactory.getBeansWithAnnotation(Strategy.class)).thenReturn(annotatedBeans);
-
-        strategyBeanPostProcessor.postProcessAfterInitialization(defaultStrategyFactory, "defaultStrategyFactory");
-
-        SuperSpecialStrategy strategy = defaultStrategyFactory.getStrategy(SuperSpecialStrategy.class, Collections.singletonMap("profile", "PREMIUM"));
-        assertEquals("Strategy returned was for the wrong profile", strategy.getClass(), LimitedPremiumSpecialStrategy.class);
+        SpecialStrategy strategy = strategyFactory.getStrategy(SpecialStrategy.class, Collections.singletonMap("number", 2));
+        assertEquals("Strategy returned was for the wrong number", NumberTwoAndThreeSpecialStrategy.class, strategy.getClass());
     }
 
     @Test
-    public void shouldGetTheDefaultStrategyWithNullProfileParam() {
-        Map<String, Object> annotatedBeans = new HashMap<>();
-        annotatedBeans.put("bean_premium", new PremiumTestStrategy());
-        annotatedBeans.put("bean_limitedpremium_super", new LimitedPremiumSpecialStrategy());
-        annotatedBeans.put("bean_default", new DefaultTestStrategy());
-        annotatedBeans.put("bean_default_super", new DefaultSuperSpecialStrategy());
+    public void shouldGetTheDefaultStrategyWithNoNumberParam() {
+        Map<Class, List<AnnotatedBean>> annotatedBeans = new HashMap<>();
+        annotatedBeans.put(TestStrategy.class, Arrays.asList(create(new DefaultTestStrategy(), true), create(new NumberTwoTestStrategy())));
+        annotatedBeans.put(SpecialStrategy.class, Arrays.asList(create(new DefaultSpecialStrategy(), true), create(new NumberTwoAndThreeSpecialStrategy())));
+        setStrategies(annotatedBeans);
 
-        when(beanFactory.getBeansWithAnnotation(Strategy.class)).thenReturn(annotatedBeans);
-
-        strategyBeanPostProcessor.postProcessAfterInitialization(defaultStrategyFactory, "defaultStrategyFactory");
-
-        TestStrategy strategy = defaultStrategyFactory.getStrategy(TestStrategy.class, Collections.emptyMap());
-        assertTrue("Strategy returned was for the wrong profile", strategy instanceof DefaultTestStrategy);
+        TestStrategy strategy = strategyFactory.getStrategy(TestStrategy.class, Collections.emptyMap());
+        assertEquals("Strategy returned was for the wrong number", DefaultTestStrategy.class, strategy.getClass());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
+    public void shouldGetTheCorrectStrategyDespiteMultipleInterfaces() {
+        Map<Class, List<AnnotatedBean>> annotatedBeans = new HashMap<>();
+        annotatedBeans.put(TestStrategy.class, Arrays.asList(create(new DefaultTestStrategy(), true), create(new NumberTwoTestStrategy()), create(new NumberThreeTestStrategy())));
+        annotatedBeans.put(SpecialStrategy.class, Arrays.asList(create(new DefaultSpecialStrategy(), true), create(new NumberTwoAndThreeSpecialStrategy())));
+        annotatedBeans.put(MultipleInterfacesStrategy.class, Arrays.asList(create(new DefaultMultipleInterfacesStrategy(), true), create(new NumberOneMultipleInterfacesStrategy()), create(new NumberTwoMultipleInterfacesStrategy()), create(new NumberThreeMultipleInterfacesStrategy())));
+
+        setStrategies(annotatedBeans);
+
+        MultipleInterfacesStrategy strategy = strategyFactory.getStrategy(MultipleInterfacesStrategy.class, Collections.singletonMap("number", 3));
+        assertEquals("Strategy returned was for the wrong number", NumberThreeMultipleInterfacesStrategy.class, strategy.getClass());
+    }
+
+    @Test(expected = BeanInitializationException.class)
     public void shouldNotFindAStrategy() {
-        Map<String, Object> annotatedBeans = new HashMap<>();
-        annotatedBeans.put("bean_free", new FreeTestStrategy());
-        annotatedBeans.put("bean_limited", new LimitedTestStrategy());
-        annotatedBeans.put("bean_premium", new PremiumTestStrategy());
+        Map<Class, List<AnnotatedBean>> annotatedBeans = new HashMap<>();
+        annotatedBeans.put(TestStrategy.class, Arrays.asList(create(new DefaultTestStrategy(), true), create(new NumberTwoTestStrategy()), create(new NumberThreeTestStrategy())));
 
-        when(beanFactory.getBeansWithAnnotation(Strategy.class)).thenReturn(annotatedBeans);
+        setStrategies(annotatedBeans);
 
-        strategyBeanPostProcessor.postProcessAfterInitialization(defaultStrategyFactory, "defaultStrategyFactory");
-
-        defaultStrategyFactory.getStrategy(SuperSpecialStrategy.class, Collections.singletonMap("profile", "PREMIUM"));
+        strategyFactory.getStrategy(SpecialStrategy.class, Collections.singletonMap("number", 2));
     }
 
     private interface TestStrategy {}
 
-    @Strategy(type=TestStrategy.class)
+    @Strategy
     private static class DefaultTestStrategy implements TestStrategy {
+
+    }
+    @Strategy(selector = "#{#number == 2}")
+    private static class NumberTwoTestStrategy implements TestStrategy {
+
+    }
+    @Strategy(selector = "#{#number == 3}")
+    private static class NumberThreeTestStrategy implements TestStrategy {
+
     }
 
-    @Strategy(type=TestStrategy.class, selector = "#{#profile == 'FREE'}")
-    private static class FreeTestStrategy implements TestStrategy {
+    private interface SpecialStrategy {}
+
+    @Strategy
+    private static class DefaultSpecialStrategy implements SpecialStrategy {
+
+    }
+    @Strategy(selector = "#{#number == 2 or #number == 3}")
+    private static class NumberTwoAndThreeSpecialStrategy implements SpecialStrategy {
+
     }
 
-    @Strategy(type=TestStrategy.class, selector = "#{#profile == 'LIMITED'}")
-    private static class LimitedTestStrategy implements TestStrategy {
+    /**
+     * Classes for testing multiple interfaces
+     */
+    private interface MultipleInterfacesStrategy {}
+    private interface RegularInterface {}
+    private interface OtherRegularInterface {}
+
+    @Strategy
+    private static class DefaultMultipleInterfacesStrategy implements MultipleInterfacesStrategy, RegularInterface {
+
+    }
+    @Strategy(selector = "#{#number == 1}")
+    private static class NumberOneMultipleInterfacesStrategy implements MultipleInterfacesStrategy, OtherRegularInterface {
+
+    }
+    @Strategy(selector = "#{#number == 2}")
+    private static class NumberTwoMultipleInterfacesStrategy implements MultipleInterfacesStrategy {
+
+    }
+    @Strategy(selector = "#{#number == 3}")
+    private static class NumberThreeMultipleInterfacesStrategy implements MultipleInterfacesStrategy, RegularInterface, OtherRegularInterface {
+
     }
 
-    @Strategy(type=TestStrategy.class, selector = "#{#profile == 'PREMIUM'}")
-    private static class PremiumTestStrategy implements TestStrategy {
+    private <T> AnnotatedBean<T> create(T strategy) {
+        return create(strategy, false);
     }
 
-    @Strategy(type=TestStrategy.class, selector = "#{#profile == 'FREE' or #profile == 'PREMIUM'}")
-    private static class FreeLimitedTestStrategy implements TestStrategy {
+    private <T> AnnotatedBean<T> create(T strategy, boolean defaultStrategy) {
+        Strategy strategyAnnotation = AnnotationUtils.findAnnotation(strategy.getClass(), Strategy.class);
+        return new AnnotatedBean<>(strategy, strategyAnnotation, defaultStrategy);
     }
 
-    private interface SuperSpecialStrategy {}
-
-    @Strategy(type=SuperSpecialStrategy.class)
-    private static class DefaultSuperSpecialStrategy implements SuperSpecialStrategy {
-    }
-
-    @Strategy(type=SuperSpecialStrategy.class, selector = "#{#profile == 'FREE'}")
-    private static class FreeSuperSpecialStrategy implements SuperSpecialStrategy {
-    }
-
-    @Strategy(type=SuperSpecialStrategy.class, selector = "#{#profile == 'LIMITED' or #profile == 'PREMIUM'}")
-    private static class LimitedPremiumSpecialStrategy implements SuperSpecialStrategy {
+    private void setStrategies(Map<Class, List<AnnotatedBean>> strategies) {
+        Whitebox.setInternalState(strategyFactory, "strategies", strategies);
     }
 
 }

@@ -3,26 +3,28 @@ package com.captechventures.strategy.config;
 import com.captechventures.strategy.AnnotatedBean;
 import com.captechventures.strategy.Strategy;
 import com.captechventures.strategy.StrategyFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class StrategyBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware {
+
+    private static final Logger LOG = LoggerFactory.getLogger(StrategyBeanPostProcessor.class);
 
     private ConfigurableListableBeanFactory beanFactory;
 
     @Override
     public void setBeanFactory(BeanFactory beanFactory) {
         if (!(beanFactory instanceof ConfigurableListableBeanFactory)) {
-            throw new IllegalArgumentException("StrategyBeanPostProcessor requires a ConfigurableListableBeanFactory");
+            throw new BeanInitializationException("StrategyBeanPostProcessor requires a ConfigurableListableBeanFactory");
         }
         this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
     }
@@ -43,11 +45,15 @@ public class StrategyBeanPostProcessor implements BeanPostProcessor, BeanFactory
 
             for (Object b : annotatedBeanClasses.values()) {
                 Strategy strategyAnnotation = AnnotationUtils.findAnnotation(b.getClass(), Strategy.class);
-                if (!strategies.containsKey(strategyAnnotation.type())) {
-                    strategies.put(strategyAnnotation.type(), new ArrayList<>());
+                Class[] interfaces = b.getClass().getInterfaces();
+                for (Class c : interfaces) {
+                    if (!strategies.containsKey(c)) {
+                        strategies.put(c, new ArrayList<>());
+                    }
+                    ifNotExistAdd(strategies, c, strategyAnnotation, b);
                 }
-                ifNotExistAdd(strategies, strategies.get(strategyAnnotation.type()), strategyAnnotation, b);
             }
+            removeStrategiesWithoutADefault(strategies);
             sanityCheck(strategies);
             ((StrategyFactory)bean).add(strategies);
         }
@@ -59,31 +65,47 @@ public class StrategyBeanPostProcessor implements BeanPostProcessor, BeanFactory
         return o;
     }
 
+    /**
+     * Checks that each strategy has only unique selectors.
+     * @param strategies
+     * @throws BeanInitializationException if a duplicate selector is found
+     */
     private void sanityCheck(Map<Class<Object>, List<AnnotatedBean<Object>>> strategies) {
 
-        Map<String, AnnotatedBean> selectors = new HashMap<>();
-        for (List<AnnotatedBean<Object>> annotatedBeans : strategies.values()) {
+        Set<String> selectors = new HashSet<>();
+        for (Class<? extends Object> strategyClass : strategies.keySet()) {
+            List<AnnotatedBean<Object>> annotatedBeans = strategies.get(strategyClass);
+
             for (AnnotatedBean annotatedBean : annotatedBeans) {
                 String selector = annotatedBean.getStrategy().selector();
                 if (selector != null && !selector.equals("")) {
-                    AnnotatedBean otherBean = selectors.get(selector);
-                    if (otherBean != null && otherBean.getStrategy().type().equals(annotatedBean.getStrategy().type())) {
-                        throw new RuntimeException("Selectors must be unique for each strategy, duplicate selector '" + selector + "'");
+                    if (selectors.contains(strategyClass.getName() + selector)) {
+                        throw new BeanInitializationException(String.format("Selectors must be unique for each strategy, strategy of type {}  has a duplicate selector '{}'", strategyClass.getName(), selector));
                     }
-                    selectors.put(selector, annotatedBean);
+                    selectors.add(strategyClass.getName() + selector);
                 }
-            }
-        }
-
-        for (Class strategyClass : strategies.keySet()) {
-            if (!hasDefaultStrategy(strategies, strategyClass)) {
-                throw new RuntimeException("Each strategy must have a default fallback strategy, strategy missing default: " + strategyClass.getName());
             }
         }
     }
 
-    private boolean hasDefaultStrategy(Map<Class<Object>, List<AnnotatedBean<Object>>> strategies, Class strategyClass) {
-        List<AnnotatedBean<Object>> annotatedBeans = strategies.get(strategyClass);
+    /**
+     * Removes any class that doesn't have a default
+     * @param strategies
+     */
+    private void removeStrategiesWithoutADefault(Map<Class<Object>, List<AnnotatedBean<Object>>> strategies) {
+
+        for (Iterator<Class<Object>> iterator = strategies.keySet().iterator(); iterator.hasNext(); ) {
+            Class<Object> strategyClass = iterator.next();
+            List<AnnotatedBean<Object>> annotatedBeans = strategies.get(strategyClass);
+
+            if (!hasDefaultStrategy(annotatedBeans)) {
+                LOG.warn("Ignoring {} because it doesn't have a default strategy", strategyClass.getName());
+                iterator.remove();
+            }
+        }
+    }
+
+    private boolean hasDefaultStrategy(List<AnnotatedBean<Object>> annotatedBeans) {
         for (AnnotatedBean annotatedBean : annotatedBeans) {
             if (annotatedBean.isDefaultStrategy()) {
                 return true;
@@ -92,14 +114,14 @@ public class StrategyBeanPostProcessor implements BeanPostProcessor, BeanFactory
         return false;
     }
 
-    private AnnotatedBean ifNotExistAdd(Map<Class<Object>, List<AnnotatedBean<Object>>> strategies, List<AnnotatedBean<Object>> beans, Strategy strategyAnnotation, Object bean) {
-        for (AnnotatedBean ab : beans) {
+    private AnnotatedBean<? extends Object> ifNotExistAdd(Map<Class<Object>, List<AnnotatedBean<Object>>> strategies, Class strategyClass, Strategy strategyAnnotation, Object bean) {
+        for (AnnotatedBean ab : strategies.get(strategyClass)) {
             if (ab.getBean().equals(bean)) {
                 return ab;
             }
         }
-        AnnotatedBean annotatedBean = new AnnotatedBean<>(bean, strategyAnnotation, isDefault(strategyAnnotation));
-        strategies.get(strategyAnnotation.type()).add(annotatedBean);
+        AnnotatedBean<? super Object> annotatedBean = new AnnotatedBean<>(bean, strategyAnnotation, isDefault(strategyAnnotation));
+        strategies.get(strategyClass).add(annotatedBean);
         return annotatedBean;
     }
 

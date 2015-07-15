@@ -7,8 +7,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-@Strategy(type = UserSwitcherStrategy.class,
-        selector = "#{#profile == T(com.captechventures.strategy.sample.model.Profile).FREE}")
+@Strategy(selector = "#{#profile == T(com.captechventures.strategy.sample.model.Profile).FREE}")
 public class FreeUserSwitcherStrategy implements UserSwitcherStrategy {
 
     @Override

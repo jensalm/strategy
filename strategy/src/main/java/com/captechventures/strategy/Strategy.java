@@ -14,7 +14,6 @@ import java.lang.annotation.*;
  * profile of the user.
  * group.
  * @see DefaultStrategyFactory
- * @see Strategy#type()
  * @see Strategy#selector()
  */
 @Documented
@@ -23,8 +22,10 @@ import java.lang.annotation.*;
 @Component
 public @interface Strategy {
 
-    Class type();
-
+    /**
+     * A value that distinguishes each implementation of the strategy.
+     * @return a unique (for this strategy) value
+     */
     String selector() default "";
 
 }

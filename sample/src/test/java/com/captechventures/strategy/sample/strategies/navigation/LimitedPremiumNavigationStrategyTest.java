@@ -21,12 +21,13 @@ public class LimitedPremiumNavigationStrategyTest {
     }
 
     @Test
-    public void shouldHaveSpecialAndSignedIn() {
+    public void shouldHaveMembersOnlyAndSignedIn() {
         ModelAndView modelAndView = new ModelAndView();
         navigationStrategy.createNavigation(modelAndView);
         @SuppressWarnings("unchecked")
         Map<String, String> navigation = (Map<String, String>) modelAndView.getModel().get("navigation");
-        assertEquals("/signed_in.html", navigation.get("Signed In"));
-        assertEquals("/special.html", navigation.get("Special"));
+        assertEquals("/sign_out.html", navigation.get("Sign Out"));
+        assertEquals("/members1.html", navigation.get("Only for Members 1"));
+        assertEquals("/members2.html", navigation.get("Only for Members 2"));
     }
 }

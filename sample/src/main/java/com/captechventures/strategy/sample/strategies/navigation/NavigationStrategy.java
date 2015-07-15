@@ -7,6 +7,6 @@ import org.springframework.web.servlet.ModelAndView;
  */
 public interface NavigationStrategy {
 
-    public void createNavigation(ModelAndView modelAndView);
+    void createNavigation(ModelAndView modelAndView);
 
 }

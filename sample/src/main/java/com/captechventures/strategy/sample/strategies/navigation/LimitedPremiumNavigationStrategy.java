@@ -6,8 +6,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Map;
 
-@Strategy(type=NavigationStrategy.class,
-        selector="#{#profile == T(com.captechventures.strategy.sample.model.Profile).LIMITED or " +
+@Strategy(selector="#{#profile == T(com.captechventures.strategy.sample.model.Profile).LIMITED or " +
                 "#profile == T(com.captechventures.strategy.sample.model.Profile).PREMIUM}")
 public class LimitedPremiumNavigationStrategy implements NavigationStrategy {
 
@@ -16,8 +15,9 @@ public class LimitedPremiumNavigationStrategy implements NavigationStrategy {
         Map<String, String> navigation = Maps.newLinkedHashMap();
 
         navigation.put("Home", "/");
-        navigation.put("Special", "/special.html");
-        navigation.put("Signed In", "/signed_in.html");
+        navigation.put("Only for Members 1", "/members1.html");
+        navigation.put("Only for Members 2", "/members2.html");
+        navigation.put("Sign Out", "/sign_out.html");
 
         modelAndView.addObject("navigation", navigation);
     }

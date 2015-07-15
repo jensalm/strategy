@@ -7,7 +7,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-@Strategy(type = UserSwitcherStrategy.class)
+@Strategy
 public class DefaultUserSwitcherStrategy implements UserSwitcherStrategy {
 
     @Override
@@ -15,7 +15,7 @@ public class DefaultUserSwitcherStrategy implements UserSwitcherStrategy {
 
         Map<String, String> links = Maps.newLinkedHashMap();
 
-        links.put("Free", ServletUriComponentsBuilder.fromCurrentContextPath().pathSegment("user").query("id=0").toUriString());
+        links.put("Free", "");
         links.put("Limited", ServletUriComponentsBuilder.fromCurrentContextPath().pathSegment("user").query("id=1").toUriString());
         links.put("Premium", ServletUriComponentsBuilder.fromCurrentContextPath().pathSegment("user").query("id=2").toUriString());
 

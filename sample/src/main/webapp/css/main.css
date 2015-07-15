@@ -1,0 +1,29 @@
+nav {
+    display: block!important;
+}
+
+nav ul {
+    display: table;
+    float: left;
+    list-style: none;
+    padding: 10px 0;
+    margin: 0 5px 15px 0;
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 10px;
+}
+
+ul.top {
+    border-bottom: 1px solid black;
+}
+ul.bottom {
+    border-top: 1px solid black;
+}
+
+main {
+    display: block;
+    clear: both;
+    min-height: 100px;
+}

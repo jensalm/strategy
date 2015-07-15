@@ -1,6 +1,6 @@
 package com.captechventures.strategy;
 
-import org.springframework.util.Assert;
+import org.springframework.beans.factory.BeanInitializationException;
 
 import org.slf4j.*;
 
@@ -33,7 +33,7 @@ public class DefaultStrategyFactory implements StrategyFactory {
                 Strategy strategyAnnotation = bean.getStrategy();
                 Boolean selected = evaluator.getSelector(strategyAnnotation.selector());
                 if (selected != null && selected) {
-                    LOG.debug(String.format("Found strategy of type '%s' matching expression '%s'", strategyAnnotation.type(), strategyAnnotation.selector()));
+                    LOG.debug(String.format("Found strategy of type '%s' matching expression '%s'", strategyType, strategyAnnotation.selector()));
                     return bean.getBean();
                 }
             }
@@ -45,7 +45,9 @@ public class DefaultStrategyFactory implements StrategyFactory {
     public <T> T getStrategy(Class<T> strategyType, Selector<T> selector) {
 
         List<AnnotatedBean<T>> strategyBeans = (List<AnnotatedBean<T>>)strategies.get(strategyType);
-        Assert.notEmpty(strategyBeans, String.format("No strategies found of type '%s', are the strategies marked with @Strategy?", strategyType.getName()));
+        if (strategyBeans == null || strategyBeans.isEmpty()) {
+            throw new BeanInitializationException(String.format("No strategies found of type '%s', are the strategies marked with @Strategy?", strategyType.getName()));
+        }
 
         T chosenStrategy = selector.select(strategyBeans);
         //noinspection unchecked
@@ -63,6 +65,18 @@ public class DefaultStrategyFactory implements StrategyFactory {
         }
 
         throw new RuntimeException(String.format("No strategy found for type '%s'", strategyType));
+    }
+
+    public <T> List<T> getAllStrategies(Class<T> strategyType) {
+        if (strategies.containsKey(strategyType)) {
+            return Collections.unmodifiableList((List<T>)strategies.get(strategyType));
+        } else {
+            return null;
+        }
+    }
+
+    public <T> Set<Class<T>> getStrategyTypes() {
+        return Collections.unmodifiableSet(strategies.keySet());
     }
 
     @Override

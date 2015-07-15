@@ -2,7 +2,7 @@ package com.captechventures.strategy.sample.strategies.content;
 
 import com.captechventures.strategy.Strategy;
 
-@Strategy(type = ContentStrategy.class)
+@Strategy
 public class FreeContentStrategy implements ContentStrategy {
 
     @Override

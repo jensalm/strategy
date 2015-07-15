@@ -12,8 +12,7 @@
         <appender-ref ref="STDOUT" />
     </root>
 
-    <logger name="org.springframework" level="TRACE"/>
-    <logger name="com.captechventures.sample" level="TRACE"/>
+    <logger name="org.springframework" level="info"/>
     <logger name="com.captechventures.strategy" level="TRACE"/>
 
 </configuration>

@@ -7,8 +7,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-@Strategy(type = UserSwitcherStrategy.class,
-        selector = "#{#profile == T(com.captechventures.strategy.sample.model.Profile).PREMIUM}")
+@Strategy(selector = "#{#profile == T(com.captechventures.strategy.sample.model.Profile).PREMIUM}")
 public class PremiumUserSwitcherStrategy implements UserSwitcherStrategy {
 
     @Override
