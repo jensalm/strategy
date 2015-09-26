@@ -1,6 +1,7 @@
 package com.captechventures.strategy;
 
 import com.captechventures.model.Profile;
+import org.springframework.aop.framework.Advised;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -58,6 +59,14 @@ public class StrategyFactory {
         for (Object bean : annotatedBeanClasses) {
 
             Strategy strategyAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), Strategy.class);
+            if (strategyAnnotation == null){
+                try {
+                    Object target = ((Advised) bean).getTargetSource().getTarget();
+                    strategyAnnotation = AnnotationUtils.findAnnotation(target.getClass(), Strategy.class);
+                } catch (Exception e) {
+                    LOG.error("Could not resolve Strategy annotation for spring bean!", e);
+                }
+            }
             strategyCache.put(bean.getClass(), strategyAnnotation);
 
             if (isDefault(strategyAnnotation)) {
